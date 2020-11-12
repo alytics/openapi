@@ -17,28 +17,9 @@ paths:
     get:
       description: Получение статистики таблицы эффективности
       parameters:
-        - name: project_id
-          in: query
-          schema:
-            type: integer
-          description: ID проекта в Alytics.
-          required: true
-        - name: date_from
-          in: query
-          schema:
-            type: string
-            format: date
-            example: '2020-05-14'
-          description: Дата начала периода.
-          required: true
-        - name: date_to
-          in: query
-          schema:
-            type: string
-            format: date
-            example: '2020-10-14'
-          description: Дата окончания периода.
-          required: true
+        - $ref: '#/components/parameters/project_id'
+        - $ref: '#/components/parameters/date_from'
+        - $ref: '#/components/parameters/date_to'
         - name: dimensions
           in: query
           schema:
@@ -255,7 +236,7 @@ paths:
               schema:
                 type: object
               examples:
-                Ошибка валидации полей:
+                Ошибка валидации:
                   value:
                     limit:
                       - Требуется целочисленное значение.
@@ -265,8 +246,7 @@ paths:
                       - Некорректные значения измерений
                 Количество целей больше максимального:
                   value:
-                    goal_ids:
-                      - 'Невозможно вывести все цели, используйте goal_ids с допустимым значением.'
+                    detail: 'Невозможно вывести все цели, используйте goal_ids с допустимым значением.'
         '403':
           description: Forbidden
           content:
@@ -280,11 +260,37 @@ paths:
                 Нет доступа к проекту:
                   value:
                     project_id: Нет прав на проект 315
-      operationId: sources_raw_report
+      operationId: get_sources_raw_report
       tags:
         - sources
       summary: ''
 components:
+  parameters:
+    project_id:
+      name: project_id
+      in: query
+      schema:
+        type: integer
+      description: ID проекта в Alytics.
+      required: true
+    date_from:
+      name: date_from
+      in: query
+      schema:
+        type: string
+        format: date
+        example: '2020-05-14'
+      description: Дата начала периода.
+      required: true
+    date_to:
+      name: date_to
+      in: query
+      schema:
+        type: string
+        format: date
+        example: '2020-10-14'
+      description: Дата окончания периода.
+      required: true
   securitySchemes:
     HeaderTokenAuth:
       type: apiKey
@@ -294,7 +300,6 @@ components:
       type: apiKey
       in: query
       name: token
-  schemas: {}
 security:
   - HeaderTokenAuth: []
   - QueryTokenAuth: []
