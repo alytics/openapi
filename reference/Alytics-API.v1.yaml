@@ -1,0 +1,295 @@
+openapi: 3.0.0
+info:
+  title: Alytics API
+  description: |-
+    ![Логотип Alytics](https://alytics.ru/local/templates/new2018/img/logo.png)  
+    [Alytics](https://alytics.ru) — система сквозной аналитики с лучшей автоматизацией контекстной рекламы.  
+    Для авторизации в API необходимо в настройках проекта получить токен, он связан с проектом и не имеет срока действия.  
+    Токен необходимо передавать в HTTP заголовке "X-External-Token" либо в параметрах запроса "token".
+  version: 0.1.1
+  contact:
+    email: support@alytics.ru
+    url: 'https://alytics.ru/'
+servers:
+  - url: 'https://prod.alytics.ru'
+paths:
+  /sources/stat/report/raw:
+    get:
+      description: Получение статистики таблицы эффективности
+      parameters:
+        - name: project_id
+          in: query
+          schema:
+            type: integer
+            example: 31
+          description: ID проекта в Alytics.
+          required: true
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+            example: '2020-05-14'
+          description: Дата начала периода.
+          required: true
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+            example: '2020-10-14'
+          description: Дата окончания периода.
+          required: true
+        - name: dimensions
+          in: query
+          schema:
+            type: string
+            example: 'date,group_name'
+          description: |
+            Список полей для группировки через запятую.
+
+            Доступные значения:  
+
+            | Поле          | Значение         | Тип                 |
+            |---------------|------------------|---------------------|
+            | campaign_id   | ID кампании      | string              |
+            | project_id    | ID проекта       | integer             |
+            | icon_name     | URL иконки       | string              |
+            | city          | Город            | string              |
+            | group_name    | Группа источника | string              |
+            | date          | Дата             | string (YYYY-MM-DD) |
+            | source        | Источник / канал | string              |
+            | campaign_name | Кампания         | string              |
+            | region        | Регион           | string              |
+            | country       | Страна           | string              |
+          required: true
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            example: 0
+          required: false
+          description: Смещение пагинации.
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 10000
+            default: 10000
+            example: 20
+          required: false
+          description: Количество строк.
+        - name: goal_ids
+          in: query
+          schema:
+            type: string
+            example: '111,222'
+          required: false
+          description: Список ID целей для отображения через запятую. По-умолчанию выводятся выбранные цели в проекте.
+        - name: not_load_empty_rows
+          in: query
+          schema:
+            type: boolean
+            default: true
+          required: false
+          description: Не выбирать пустые строки.
+        - schema:
+            type: boolean
+            default: true
+          in: query
+          name: ignore_column_settings
+          description: Выбрать все столбцы. При значении false используются настройки столбцов в проекте.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  offset:
+                    type: integer
+                    description: ''
+                  fields:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        name:
+                          type: string
+                        goal_id:
+                          type: string
+                      required:
+                        - field
+                        - name
+                  rows:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        anyOf:
+                          - type: boolean
+                          - type: string
+                          - type: integer
+                          - type: number
+                            format: float
+                required:
+                  - offset
+                  - fields
+              examples:
+                Пример успешного ответа:
+                  value:
+                    offset: 0
+                    fields:
+                      - field: date
+                        name: Дата
+                      - field: project_id
+                        name: ID проекта
+                      - field: group_name
+                        name: Группа источника
+                      - field: source
+                        name: Источник / канал
+                      - field: campaign_name
+                        name: Кампания
+                      - field: city
+                        name: Город
+                      - field: region
+                        name: Регион
+                      - field: country
+                        name: Страна
+                      - field: icon_name
+                        name: URL иконки
+                      - field: 'costs:clicks'
+                        name: Клики
+                      - field: 'costs:shows'
+                        name: Показы
+                      - field: 'costs:cost'
+                        name: Затраты
+                      - field: 'costs:ctr'
+                        name: 'CTR, %'
+                      - field: 'costs:cpc'
+                        name: Цена клика
+                      - field: 'sessions:bounce_rate'
+                        name: 'Отказы, %'
+                      - field: 'sessions:average_time'
+                        name: 'Время, сек'
+                      - field: 'sessions:pages_per_visit'
+                        name: Стр / сеанс
+                      - field: 'sessions:new_visits'
+                        name: 'Новые, %'
+                      - field: 'goals:3634:count'
+                        name: 'Кол-во Продолжительность - Больше чем 2 минуты (id: 1) - Без м.а. Google Analytics'
+                        goal_id: '3634'
+                      - field: 'goals:3634:cpa'
+                        name: 'CPA Продолжительность - Больше чем 2 минуты (id: 1) - Без м.а. Google Analytics'
+                        goal_id: '3634'
+                      - field: 'goals:3634:cr'
+                        name: 'CR, % Продолжительность - Больше чем 2 минуты (id: 1) - Без м.а. Google Analytics'
+                        goal_id: '3634'
+                      - field: 'goals:7660:count'
+                        name: Кол-во Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                      - field: 'goals:7660:cpa'
+                        name: CPA Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                      - field: 'goals:7660:cr'
+                        name: 'CR, % Продажи из CRM - Линейная исключен facebook / cpc CRM'
+                        goal_id: '7660'
+                      - field: 'goals:7660:revenue'
+                        name: Выручка Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                      - field: 'goals:7660:gross_profit'
+                        name: Прибыль Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                      - field: 'goals:7660:roi'
+                        name: 'ROI, % Продажи из CRM - Линейная исключен facebook / cpc CRM'
+                        goal_id: '7660'
+                      - field: 'goals:7660:roas'
+                        name: 'ROAS, % Продажи из CRM - Линейная исключен facebook / cpc CRM'
+                        goal_id: '7660'
+                      - field: 'goals:7660:drr'
+                        name: 'ДРР, % Продажи из CRM - Линейная исключен facebook / cpc CRM'
+                        goal_id: '7660'
+                      - field: 'goals:7660:aov'
+                        name: Средний чек Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                      - field: 'goals:7660:net_profit'
+                        name: Чистая прибыль Продажи из CRM - Линейная исключен facebook / cpc CRM
+                        goal_id: '7660'
+                    rows:
+                      - - '2020-01-15'
+                        - 31
+                        - Прямой трафик
+                        - (direct) / (none)
+                        - (not set)
+                        - Ярославль
+                        - Ярославская область
+                        - Россия
+                        - 'https://testing1.alytics.ru/icons/groups/be1106f5-a826-41fd-8ee3-37e6ae1d5006.png'
+                        - 1
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 9
+                        - 1
+                        - 100
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+                        - 0
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                example-1:
+                  value: {}
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                Некорректный токен:
+                  value:
+                    detail: Учетные данные не были предоставлены.
+                Нет доступа к проекту:
+                  value:
+                    project_id: Нет прав на проект 315
+      operationId: sources_raw_report
+      tags:
+        - sources
+      summary: ''
+components:
+  securitySchemes:
+    HeaderTokenAuth:
+      type: apiKey
+      in: header
+      name: X-External-Token
+    QueryTokenAuth:
+      type: apiKey
+      in: query
+      name: token
+  schemas: {}
+security:
+  - HeaderTokenAuth: []
+  - QueryTokenAuth: []
+tags:
+  - name: sources
