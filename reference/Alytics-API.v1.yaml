@@ -21,7 +21,6 @@ paths:
           in: query
           schema:
             type: integer
-            example: 31
           description: ID проекта в Alytics.
           required: true
         - name: date_from
@@ -44,7 +43,7 @@ paths:
           in: query
           schema:
             type: string
-            example: 'date,group_name'
+            example: 'date,group_name,source'
           description: |
             Список полей для группировки через запятую.
 
@@ -68,7 +67,6 @@ paths:
           schema:
             type: integer
             default: 0
-            example: 0
           required: false
           description: Смещение пагинации.
         - name: limit
@@ -84,7 +82,6 @@ paths:
           in: query
           schema:
             type: string
-            example: '111,222'
           required: false
           description: Список ID целей для отображения через запятую. По-умолчанию выводятся выбранные цели в проекте.
         - name: not_load_empty_rows
@@ -140,7 +137,7 @@ paths:
                   - offset
                   - fields
               examples:
-                Пример успешного ответа:
+                Успешный ответ:
                   value:
                     offset: 0
                     fields:
@@ -258,8 +255,18 @@ paths:
               schema:
                 type: object
               examples:
-                example-1:
-                  value: {}
+                Ошибка валидации полей:
+                  value:
+                    limit:
+                      - Требуется целочисленное значение.
+                    goal_ids:
+                      - Некорректный список целей
+                    dimensions:
+                      - Некорректные значения измерений
+                Количество целей больше максимального:
+                  value:
+                    goal_ids:
+                      - 'Невозможно вывести все цели, используйте goal_ids с допустимым значением.'
         '403':
           description: Forbidden
           content:
